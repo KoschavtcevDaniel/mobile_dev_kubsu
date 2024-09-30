@@ -1,0 +1,408 @@
+package com.example.myapplication
+
+import android.annotation.SuppressLint
+import androidx.appcompat.app.AppCompatActivity
+import android.os.Bundle
+import android.widget.Button
+import android.widget.EditText
+import android.widget.ImageButton
+import android.widget.TextView
+import com.example.calcul.R
+
+class MainActivity : AppCompatActivity() {
+    var curOp : Char = '='
+
+    @SuppressLint("WrongViewCast")
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_main)
+
+        val buttons = listOf<Button>(
+            findViewById<Button>(R.id.b1),
+            findViewById<Button>(R.id.b2),
+            findViewById<Button>(R.id.b3),
+            findViewById<Button>(R.id.b4),
+            findViewById<Button>(R.id.b5),
+            findViewById<Button>(R.id.b6),
+            findViewById<Button>(R.id.b7),
+            findViewById<Button>(R.id.b8),
+            findViewById<Button>(R.id.b9),
+            findViewById<Button>(R.id.b13))
+
+        val del = findViewById<ImageButton>(R.id.b16)
+        val min = findViewById<Button>(R.id.b12)
+        val pls = findViewById<Button>(R.id.b15)
+        val div = findViewById<Button>(R.id.b10)
+        val umn = findViewById<Button>(R.id.b11)
+
+        val number = findViewById<TextView>(R.id.text1)
+        val oper = findViewById<TextView>(R.id.text2)
+        val answer = findViewById<EditText>(R.id.outputTextView)
+
+
+        // Кнопка "DEL" - удаляет последний символ из строки
+        // Кнопка "." - добавляет точку к числу для ввода дробных чисел
+        del.setOnClickListener{
+            val n = answer.text.length
+            if (n != 0){
+                answer.text = answer.text.delete(n-1, n)
+            }
+        }
+
+        findViewById<Button>(R.id.b14).setOnClickListener{
+            if (answer.text.isNullOrEmpty()){
+                answer.setText("0.")
+            }else{
+                if (answer.text.toString().firstOrNull{ it == '.'} == null){
+                    answer.setText(answer.text.toString() + '.')
+                }
+            }
+        }
+
+        // Арифметика
+        for (b in buttons){
+            b.setOnClickListener{ btn ->
+                if ((btn as Button).text == "0" ){
+                    if (!answer.text.isNullOrEmpty()){
+                        answer.setText(answer.text.toString() + btn.text)
+                        answer.error = null
+                    }
+                } else{
+                    answer.error = null
+                    if (answer.text.toString() != "0"){
+                        answer.setText(answer.text.toString() + btn.text)
+                    }else{
+                        answer.setText(btn.text)
+                    }
+                }
+                answer.setSelection(answer.length())
+            }
+        }
+
+        val operations = listOf<Button>(pls, div, min, umn)
+        fun calc(a: Float, b: Float, operation: Char) : Float =
+            when (operation) {
+                '+' -> a+b
+                '-' -> a-b
+                '*' -> a*b
+                '/' -> a/b
+                else -> 0.0f
+            }
+
+        // Расчёт текущей операции
+        for (op in operations){
+            op.setOnClickListener{btn ->
+                if (curOp == '='){
+                    if (answer.text.isNullOrEmpty()){
+                        answer.error = "Введите первое число"
+                        return@setOnClickListener
+                    }else{
+                        answer.error = null
+                    }
+                    number.text = answer.text
+                    answer.setText("")
+                    oper.text = op.text
+                    curOp = op.text.toString()[0]
+                }else{
+                    if (!answer.text.isNullOrEmpty()){
+                        val a = number.text.toString().toFloat()
+                        val b = answer.text.toString().toFloat()
+                        number.text = calc(a,b,curOp).toString()
+                        answer.setText("")
+                        oper.text = op.text.toString()
+                        curOp = op.text.toString()[0]
+                    }else {
+                        oper.text = op.text.toString()
+                        curOp = op.text.toString()[0]
+                    }
+                }
+            }
+        }
+
+        // В случае, если не все данные введены или введены некорректно, выводится сообщение об ошибке
+        findViewById<Button>(R.id.b17).setOnClickListener{btn ->
+            if (!answer.text.isNullOrEmpty() && !number.text.isNullOrEmpty()){
+                answer.error = null
+                val a = number.text.toString().toFloat()
+                val b = answer.text.toString().toFloat()
+                answer.setText(calc(a,b,curOp).toString())
+                number.text = ""
+                oper.text = ""
+                curOp = '='
+            }else if(!answer.text.isNullOrEmpty() && oper.text.isNullOrEmpty()) {
+                answer.error = "Введите операцию"
+            }else if(answer.text.isNullOrEmpty() && !number.text.isNullOrEmpty()){
+                answer.error = "Введите второе число"
+            }else{
+                answer.error = "Введите первое число"
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#E0321566"
+    android:onClick="onOper"
+    tools:context=".MainActivity"
+    tools:layout_editor_absoluteX="0dp"
+    tools:layout_editor_absoluteY="13dp">
+
+    <Button
+        android:id="@+id/b16"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginBottom="24dp"
+        android:onClick="onDel"
+        android:text="del"
+        app:layout_constraintBottom_toTopOf="@+id/b1"
+        app:layout_constraintEnd_toStartOf="@+id/b19"
+        app:layout_constraintHorizontal_bias="0.574"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/b19"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="116dp"
+        android:layout_marginBottom="20dp"
+        android:onClick="onClear"
+        android:text="C"
+        app:layout_constraintBottom_toTopOf="@+id/b2"
+        app:layout_constraintEnd_toStartOf="@+id/b17" />
+
+    <Button
+        android:id="@+id/b17"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="24dp"
+        android:onClick="onEqual"
+        android:text="="
+        app:layout_constraintBottom_toTopOf="@+id/b10"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/b15"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="48dp"
+        android:onClick="onOper"
+        android:text="+"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/b13"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="48dp"
+        android:onClick="onClickNum"
+        android:text="0"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/b14" />
+
+    <Button
+        android:id="@+id/b14"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="48dp"
+        android:onClick="onDot"
+        android:text="."
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/b15" />
+
+    <Button
+        android:id="@+id/b9"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="3"
+        app:layout_constraintBottom_toTopOf="@+id/b14"
+        app:layout_constraintEnd_toStartOf="@+id/b12" />
+
+    <Button
+        android:id="@+id/b7"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="148dp"
+        android:onClick="onDigit"
+        android:text="1"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/b8"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/b8"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="2"
+        app:layout_constraintBottom_toTopOf="@+id/b13"
+        app:layout_constraintEnd_toStartOf="@+id/b9" />
+
+    <Button
+        android:id="@+id/b12"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onOper"
+        android:text="-"
+        app:layout_constraintBottom_toTopOf="@+id/b15"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/b6"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="6"
+        app:layout_constraintBottom_toTopOf="@+id/b9"
+        app:layout_constraintEnd_toStartOf="@+id/b11" />
+
+    <Button
+        android:id="@+id/b11"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onOper"
+        android:text="*"
+        app:layout_constraintBottom_toTopOf="@+id/b12"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <Button
+        android:id="@+id/b3"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="9"
+        app:layout_constraintBottom_toTopOf="@+id/b6"
+        app:layout_constraintEnd_toStartOf="@+id/b10" />
+
+    <Button
+        android:id="@+id/b10"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="28dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onOper"
+        android:text="/"
+        app:layout_constraintBottom_toTopOf="@+id/b11"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/text2"
+        android:layout_width="70dp"
+        android:layout_height="25dp"
+        android:layout_marginEnd="28dp"
+        android:background="#FFFFFF"
+        app:layout_constraintEnd_toEndOf="parent"
+        tools:layout_editor_absoluteY="90dp" />
+
+    <TextView
+        android:id="@+id/text1"
+        android:layout_width="124dp"
+        android:layout_height="30dp"
+        android:background="#FBFBFB"
+        app:layout_constraintBottom_toTopOf="@+id/text2"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.902"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.757" />
+
+    <Button
+        android:id="@+id/b5"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="5"
+        app:layout_constraintBottom_toTopOf="@+id/b8"
+        app:layout_constraintEnd_toStartOf="@+id/b6" />
+
+    <Button
+        android:id="@+id/b2"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="8"
+        app:layout_constraintBottom_toTopOf="@+id/b5"
+        app:layout_constraintEnd_toStartOf="@+id/b3"
+        tools:onClick="onClickNum" />
+
+    <Button
+        android:id="@+id/b4"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="4"
+        app:layout_constraintBottom_toTopOf="@+id/b7"
+        app:layout_constraintEnd_toStartOf="@+id/b5" />
+
+    <Button
+        android:id="@+id/b1"
+        android:layout_width="70dp"
+        android:layout_height="70dp"
+        android:layout_marginEnd="24dp"
+        android:layout_marginBottom="32dp"
+        android:onClick="onDigit"
+        android:text="7"
+        app:layout_constraintBottom_toTopOf="@+id/b4"
+        app:layout_constraintEnd_toStartOf="@+id/b2"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <EditText
+        android:id="@+id/outputTextView"
+        android:layout_width="351dp"
+        android:layout_height="45dp"
+        android:layout_marginBottom="24dp"
+        android:background="#FFFFFF"
+        android:backgroundTint="#FFFFFF"
+        android:ems="10"
+        android:inputType="text"
+        android:text="Введите пример"
+        android:textAlignment="viewStart"
+        android:textSize="12sp"
+        android:typeface="normal"
+        app:layout_constraintBottom_toTopOf="@+id/b19"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.516"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.945" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>
